@@ -1,6 +1,8 @@
 # Autonomous Rover - Embedded Systems Firmware Project
 
 ## Overview
-This project involves designing and implementing firmware for an autonomous mobile rover, capable of exploring a bounded area, collecting environmental data via sensors, and making power-aware decisions.
+Firmware for an autonomous rover that navigates a test environment, deploys sensors to collect data,
+and makes runtime decisions based on system state. Designed and developed on STM32 as a hands-on exploration
+of embedded systems fundamentals.
 
 **Status:** In development
