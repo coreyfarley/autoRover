@@ -162,12 +162,22 @@ Example output:
 [SOIL] t=45200  sample=3  moisture=482
 [SYS]  t=45200  event=SAMPLING_COMPLETE
 ```
- 
+
 ### Operator Interface
  
 **IF_012** — The system shall provide visual status indication to the operator via three onboard LEDs (green, amber, red) driven by GPIO outputs, as defined in FR_026 through FR_029.
 ## Constraints
-
+**CON_001** — The system shall be built on a single STM32 microcontroller. All firmware must operate within the GPIO, ADC, timer, I2C, UART, and memory resources available on the selected MCU.
+ 
+**CON_002** — All hardware components (sensors, actuators, motor drivers, chassis) shall be commercially available off-the-shelf modules. No custom PCB fabrication or custom mechanical fabrication is in scope.
+ 
+**CON_003** — Firmware shall be written in C using the STM32 HAL library, developed in STM32CubeIDE and VS Code, and compiled with GCC.
+ 
+**CON_004** — The system shall operate from onboard battery power with no tethered connection during mission execution. Battery capacity shall support a minimum mission runtime of 20 minutes under nominal operating conditions. Total current draw from motors, servo, sensors, and MCU must be accounted for during component selection.
+ 
+**CON_005** — All components and wiring must fit on a single rover chassis. Chassis size shall be determined after component selection to ensure adequate mounting space.
+ 
+**CON_006** — The rover shall operate on natural outdoor terrain including soil, dirt, and grass. Wheel selection, ground clearance, and traction must be suitable for unpaved, potentially uneven surfaces.
 ## Assumptions & Dependencies
 
 ## Verification & Validation
