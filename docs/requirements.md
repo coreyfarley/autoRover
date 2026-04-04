@@ -1,4 +1,4 @@
-# Requirements Document
+# System Requirements Specification
 
 ## Introduction & Purpose
 This document defines the requirements for an autonomous mobile rover platform, the AutoRover
@@ -46,15 +46,18 @@ point the rover enters a shutdown state and ceases movement.
 
 **FR_005** — The system shall terminate the mission and enter a low-power sleep state after successfully collecting N soil moisture samples. N will be a configurable parameter.
 ### Motor Control & Navigation
-**FR_006** — The system shall drive the rover forward at a single speed during exploration mode.
+**FR_006** — The system shall drive the rover forward at a constant cruise speed during driving mode. Motor outputs shall support differential steering to enable heading adjustments.
 
 **FR_007** — The system shall track distance traveled using wheel encoder pulse counts.
 
 **FR_008** — The system shall continuously monitor the forward-facing distance sensor for obstacles during driving mode.
 
-**FR_009** — The system shall begin a heading adjustment when an obstacle is detected within a defined distance threshold.
+**FR_009** — The system shall begin a gradual heading adjustment when an obstacle is detected within a defined distance threshold.
 ### Soil Probe Deployment & Adaptive Sampling
-**FR_010** — The system shall determine soil sampling locations using an adaptive gradient-chasing strategy: if the delta between the current and previous soil moisture reading exceeds a defined threshold, the next sample shall be taken at a shorter travel interval; if the delta is below the threshold, the next sample shall be taken at a longer travel interval.
+**FR_010** — The system shall adjust the travel distance between sampling stops based on the moisture delta (|ΔM|) between the two most recent readings.
+
+    If |ΔM| exceeds a configurable threshold, the system shall decrease the travel interval for the subsequent sample.
+    If |ΔM| is below the threshold, the system shall increase the travel interval for the subsequent sample.  
 
 **FR_011** — When a sampling location is reached, the system shall bring the rover to a complete stop before deploying the soil moisture probe.
 
@@ -64,11 +67,11 @@ point the rover enters a shutdown state and ceases movement.
 
 **FR_014** — Upon capturing a valid soil moisture reading, the system shall return the probe to the stowed position via servo actuation.
 
-**FR_015** — The system shall not resume driving until the probe has been confirmed in the stowed position.
+**FR_015** — The system shall wait for a predefined, non-blocking duration sufficient for full servo travel before resuming driving.
 
 **FR_016** — The system shall resume driving mode after the probe is stowed and the reading has been logged.
 ### Sensor Data Collection
-**FR_017** — The system shall sample the IMU (accelerometer and gyroscope) at the highest practical rate supported by the main loop cycle.
+**FR_017** — The system shall sample the IMU at a target rate of 20 Hz.
 
 **FR_018** — The system shall continuously sample the temperature sensor, but shall only flag a new temperature value for output when the reading changes by ±1 degree or more from the last reported value.
 
@@ -76,7 +79,7 @@ point the rover enters a shutdown state and ceases movement.
 ### Data Output (UART)
 **FR_020** — The system shall transmit formatted sensor data over UART to a connected serial terminal.
 
-**FR_021** — All UART output shall include a timestamp derived from the system tick counter (milliseconds since boot).
+**FR_021** — All UART output shall include a timestamp derived from the system tick counter.
 
 **FR_022** — IMU data shall be output at an easily readable rate, formatted as a snapshot of the most recent accelerometer and gyroscope values.
 
@@ -86,21 +89,25 @@ point the rover enters a shutdown state and ceases movement.
 
 **FR_025** — System events (mission start, mission end, faults, state transitions) shall be logged over UART with timestamps.
 ### LED Status Indication
-**FR_026** — The system shall drive a green LED to indicate exploration mode (rover is driving and navigating).
+**FR_026** — The system shall blink the green LED at a slow, visible rate to indicate idle state (powered on, awaiting mission start).
 
-**FR_027** — The system shall drive an amber/yellow LED to indicate soil sampling mode (rover is stationary, probe is deployed).
+**FR_027** — The system shall drive a green LED to indicate driving mode, including during obstacle avoidance.
 
-**FR_028** — The system shall drive a red LED to indicate a fault condition or low battery state.
+**FR_028** — The system shall drive an amber/yellow LED to indicate soil sampling mode (rover is stationary, probe is deployed).
 
-**FR_029** — Only one LED state shall be active at a time, reflecting the current system state.
+**FR_029** — The system shall drive a red LED to indicate a fault condition or low battery state.
+
+**FR_030** — All LEDs shall be off during sleep state.
+
+**FR_031** — Only one LED state shall be active at a time, reflecting the current system state.
 ### Fault Handling
-**FR_030** — If a non-critical sensor (temperature/humidity) fails to return a valid reading, the system shall log an error over UART and continue the mission without that sensor's data.
+**FR_032** — If a non-critical sensor (temperature/humidity) fails to return a valid reading, the system shall log an error over UART and continue the mission without that sensor's data.
 
-**FR_031** — If a critical component (servo) fails to actuate, the system shall halt the rover, retry the operation once, and if the retry fails, transition to idle state and output an alert over UART.
+**FR_033** — If a critical component (servo) fails to actuate, the system shall halt the rover, retry the operation once, and if the retry fails, transition to idle state and output an alert over UART.
 
-**FR_032** — The system shall monitor battery voltage via ADC through a voltage divider circuit.
+**FR_034** — The system shall monitor battery voltage via ADC through a voltage divider circuit.
 
-**FR_033** — If the battery voltage falls below a defined critical threshold, the system shall log a low-battery warning over UART, activate the red LED, and initiate a graceful shutdown sequence into sleep mode.
+**FR_035** — If the battery voltage falls below a defined critical threshold, the system shall log a low-battery warning over UART, activate the red LED, and initiate a graceful shutdown sequence into sleep mode.
 ## Non-Functional Requirements
 ### Architecture
 **NFR_001** — The main loop shall be entirely non-blocking. No busy-wait delays (e.g., `HAL_Delay`) shall be used during mission execution.
@@ -117,7 +124,7 @@ point the rover enters a shutdown state and ceases movement.
 
 **NFR_007** — IMU data shall be filtered to reduce sensor noise before being reported over UART.
 
-**NFR_008** — A sensor shall not be declared faulted on a single failed read, but rather a configurable number of consecutive failed reads before triggering fault handling logic defined in FR_030 or FR_031.
+**NFR_008** — A sensor shall not be declared faulted on a single failed read, but rather a configurable number of consecutive failed reads before triggering fault handling logic defined in FR_032 or FR_033.
 ### Usability
 **NFR_009** — UART output shall be formatted in structured, human-readable text to ensure it's easily digestible for the user.
 
@@ -165,7 +172,7 @@ Example output:
 
 ### Operator Interface
  
-**IF_012** — The system shall provide visual status indication to the operator via three onboard LEDs (green, amber, red) driven by GPIO outputs, as defined in FR_026 through FR_029.
+**IF_012** — The system shall provide visual status indication to the operator via three onboard LEDs (green, amber, red) driven by GPIO outputs, as defined in FR_026 through FR_031.
 ## Constraints
 **CON_001** — The system shall be built on a single STM32 microcontroller. All firmware must operate within the GPIO, ADC, timer, I2C, UART, and memory resources available on the selected MCU.
  
@@ -179,5 +186,27 @@ Example output:
  
 **CON_006** — The rover shall operate on natural outdoor terrain including soil, dirt, and grass. Wheel selection, ground clearance, and traction must be suitable for unpaved, potentially uneven surfaces.
 ## Assumptions & Dependencies
-
+### Assumptions
+ 
+**ASMP_001** — All selected sensors and modules shall be compatible with 3.3V logic levels, either natively or through onboard level shifting provided by the breakout board. Components that output 5V logic will require external level shifting or voltage division to avoid damage to the STM32 GPIO pins.
+ 
+**ASMP_002** — All I2C devices connected to the same bus shall have unique default addresses, or shall support configurable addressing to avoid bus conflicts. This shall be verified during component selection.
+ 
+**ASMP_003** — The selected STM32 variant shall provide sufficient peripheral resources for the complete system, including: a minimum of two ADC input channels (soil moisture, battery voltage), sufficient PWM-capable timer channels for servo and dual motor control, at least one I2C bus, at least one UART interface, and adequate GPIO for encoders, button input, LEDs, and distance sensor.
+ 
+**ASMP_004** — The servo mechanism shall operate in an open-loop configuration. The selected servo shall provide sufficient torque to deploy and retract the soil moisture probe mechanism. Probe position (stowed/deployed) shall be inferred from commanded PWM duty cycles rather than physical position feedback.
+ 
+**ASMP_005** — The operating terrain shall be approximately level and free of obstacles that could cause the rover to tip, become stuck, or prevent the soil probe from making contact with the ground surface.
+ 
+**ASMP_006** — The onboard battery shall deliver stable voltage output throughout the mission duration. Voltage drop-off characteristics shall be gradual enough for the ADC-based battery monitor (FR_034) to detect the low-battery threshold before the system browns out.
+ 
+**ASMP_007** — The motor driver module shall accept PWM input and provide a simple directional interface (e.g., PWM + direction pin or dual PWM per motor) without requiring additional communication protocols.
+ 
+### Dependencies
+ 
+**DEP_001** — The firmware depends on the STM32 HAL library provided by STMicroelectronics. A specific HAL version shall be selected at project start and held constant throughout development to avoid API-breaking changes.
+ 
+**DEP_002** — The project depends on the continued commercial availability of all selected sensors and modules. If a specific component becomes unavailable, a substitute with a compatible interface may require a new driver implementation. The architectural separation defined in NFR_003 is intended to minimize the impact of such substitutions.
+ 
+**DEP_003** — Driver development for each sensor depends on the availability of adequate technical documentation (datasheets, register maps, communication protocols) from the component manufacturer or vendor.
 ## Verification & Validation
