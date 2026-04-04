@@ -1,4 +1,4 @@
-# Requirements Document Version <1.0>
+# Requirements Document
 
 ## Introduction & Purpose
 This document defines the requirements for an autonomous mobile rover platform, the AutoRover
@@ -125,7 +125,47 @@ point the rover enters a shutdown state and ceases movement.
 ### Testability
 **NFR_011** — Subsystem functionality (state machine transitions, UART output formatting, sampling logic) shall be verifiable via UART diagnostic output without requiring the rover to be physically driving.
 ## Interface Requirements
-
+### Hardware Interfaces
+ 
+**IF_001** — The IMU shall communicate with the MCU over I2C.
+ 
+**IF_002** — The temperature/humidity sensor shall communicate with the MCU over I2C.
+ 
+**IF_003** — The soil moisture sensor shall provide an analog voltage to the MCU via an ADC input channel.
+ 
+**IF_004** — The distance sensor shall interface with the MCU via GPIO (trigger/echo) or ADC input. *(Interface type TBD based on sensor selection.)*
+ 
+**IF_005** — The servo shall be driven by a PWM output from the MCU.
+ 
+**IF_006** — The drive motors shall be controlled via PWM outputs from the MCU through a motor driver module.
+ 
+**IF_007** — The wheel encoders shall provide pulse outputs to the MCU via GPIO input channels configured for edge detection.
+ 
+**IF_008** — The mission start/stop button shall be connected to a GPIO input with an internal pull-up or pull-down resistor.
+ 
+**IF_009** — The battery voltage shall be read by the MCU via an ADC input channel through a resistive voltage divider circuit.
+ 
+### Communication Interface (UART)
+ 
+**IF_010** — The system shall output data over UART using tagged, human-readable lines. Each line shall begin with a category tag enclosed in brackets, followed by a timestamp and relevant data fields in key-value format.
+ 
+**IF_011** — The following category tags shall be used:
+- `[IMU]` — Accelerometer and gyroscope snapshot
+- `[TEMP]` — Temperature change event
+- `[SOIL]` — Soil moisture sample reading
+- `[SYS]` — System events (state transitions, mission start/end, faults, low battery)
+ 
+Example output:
+```
+[IMU]  t=12340  ax=0.12  ay=-0.03  az=9.81  gx=1.2  gy=0.4  gz=-0.1
+[TEMP] t=12340  temp=76
+[SOIL] t=45200  sample=3  moisture=482
+[SYS]  t=45200  event=SAMPLING_COMPLETE
+```
+ 
+### Operator Interface
+ 
+**IF_012** — The system shall provide visual status indication to the operator via three onboard LEDs (green, amber, red) driven by GPIO outputs, as defined in FR_026 through FR_029.
 ## Constraints
 
 ## Assumptions & Dependencies
