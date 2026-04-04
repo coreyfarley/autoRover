@@ -1,8 +1,9 @@
-# Autonomous Rover - Embedded Systems Firmware Project
+# AutoRover — Embedded Systems Firmware Project
 
 ## Overview
-Firmware for an autonomous rover that navigates a test environment, deploys sensors to collect data,
-and makes runtime decisions based on system state. Designed and developed on STM32 as a hands-on exploration
-of embedded systems fundamentals.
+Bare-metal firmware for an autonomous rover built on STM32. The system navigates outdoor
+terrain with obstacle avoidance, deploys a soil moisture probe at adaptive intervals based
+on sensor readings, and logs IMU, temperature, and soil data over UART. Built from the
+ground up in C using STM32 HAL with a non-blocking state machine architecture.
 
 **Status:** In development
