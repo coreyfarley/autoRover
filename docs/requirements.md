@@ -53,7 +53,7 @@ point the rover enters a shutdown state and ceases movement.
 
 **FR_008** - The system shall continuously monitor the forward-facing distance sensor for obstacles during driving mode.
 
-**FR_009** - When an obstacle is detected within the defined threshold distance during driving mode, the system shall bring the rover to a complete stop and enter obstacle avoidance mode. The system shall pivot in place, alternating turn direction on successive avoidance events, while continuously polling the distance sensor. The rover shall continue rotating — past any additional obstacles encountered during the sweep — until the distance sensor confirms the forward path is clear. If no clear path is found within a full 360° rotation, the system shall halt the rover, transition to fault state, and output a fault event over UART. Upon returning to driving mode, the system shall apply proportional heading correction using IMU yaw data to steer the rover back toward the stored mission heading.
+**FR_009** - When an obstacle is detected within the defined threshold distance during driving mode, the system shall bring the rover to a complete stop and enter obstacle avoidance mode. The system shall pivot in place, alternating turn direction on successive avoidance events, while continuously polling the distance sensor. The rover shall continue rotating, past any additional obstacles encountered during the sweep, until the distance sensor confirms the forward path is clear. If no clear path is found within a full 360° rotation, the system shall halt the rover, transition to fault state, and output a fault event over UART. Upon returning to driving mode, the system shall apply proportional heading correction using IMU yaw data to steer the rover back toward the stored mission heading.
 ### Soil Probe Deployment & Adaptive Sampling
 **FR_010** - The system shall adjust the travel distance between sampling stops based on the moisture delta (|ΔM|) between the two most recent readings.
 
@@ -79,7 +79,7 @@ point the rover enters a shutdown state and ceases movement.
 ### Sensor Data Collection
 **FR_017** - The system shall sample the IMU at a target rate of 20 Hz.
 
-**FR_018** - The system shall continuously sample the temperature/humidity sensor. A new temperature value shall be flagged for output only when the reading changes by ±1°C or more from the last reported value. A new humidity value shall be flagged for output only when the reading changes by a configurable threshold (in %RH) from the last reported value.
+**FR_018** - The system shall continuously sample the temperature/humidity sensor. A new temperature value shall be flagged for output only when the reading changes by ±1°F or more from the last reported value. A new humidity value shall be flagged for output only when the reading changes by a configurable threshold (in %RH) from the last reported value.
 
 **FR_019** - The system shall read the soil moisture sensor via ADC only when the probe is in the deployed position.
 ### Data Output
