@@ -233,4 +233,100 @@ Example output:
 **DEP_003** - Driver development for each sensor depends on the availability of adequate technical documentation (datasheets, register maps, communication protocols) from the component manufacturer or vendor.
 
 **DEP_004** - The firmware depends on the FatFs middleware library for SD card file system access. A specific version shall be selected at project start and held constant throughout development.
-## Verification & Validation
+## Verification
+
+### Methods
+
+Each requirement in this document shall be verified using one or more of the following methods:
+
+- **Test (T)** - The system is operated and the result is measured or recorded against the expected behavior.
+- **Inspection (I)** - The firmware source code, wiring, or configuration is directly examined for compliance.
+- **Demonstration (D)** - The system is operated and the correct behavior is visually confirmed by the operator.
+- **Analysis (A)** - Compliance is established through calculation, simulation, or reasoned evaluation of design parameters.
+
+### Traceability Matrix
+
+| ID | Description | Method | Notes |
+|----|-------------|--------|-------|
+| FR_001 | Peripheral and sensor initialization on power-on | T | Verify UART readiness output confirms all peripherals initialized |
+| FR_002 | Sensor and SD card status reported over UART in idle | T | Confirm UART output includes status for each sensor and SD card |
+| FR_003 | Mission start on button press | D | Press button in idle, observe mission begins |
+| FR_004 | Mission abort on button press with probe retraction | D, T | Abort during sampling, confirm probe retracts before idle transition |
+| FR_005 | Mission terminates after N samples, enters sleep | T | Configure N, count samples, verify sleep entry |
+| FR_006 | Forward drive at constant speed with differential steering | D | Observe straight-line driving and heading corrections |
+| FR_007 | Distance tracking via encoder counts | T | Drive a known distance and compare encoder-derived distance |
+| FR_008 | Continuous distance sensor polling during driving | T | Verify polling rate via UART timestamp output |
+| FR_009 | Obstacle avoidance with alternating pivot and fault on 360 degree failure | T, D | Place obstacles, verify stop/pivot/resume behavior and heading correction; block all paths and verify fault |
+| FR_010 | Adaptive sampling interval based on moisture delta | T | Collect sequential samples with varying moisture and verify interval changes via encoder counts |
+| FR_011 | Rover stops before probe deployment | D | Observe full stop before servo actuation |
+| FR_012 | Probe lowered via servo | D | Observe servo moves probe to deployed position |
+| FR_013 | Rover stationary during deployment, valid ADC range check | T | Verify rover does not move; test with probe in air vs. soil and confirm valid/invalid classification |
+| FR_014 | Probe retracted after valid reading | D | Observe servo returns probe to stowed position |
+| FR_015 | Servo travel timed without blocking main loop | I, T | Inspect code for non-blocking timer usage; verify main loop responsiveness during servo travel |
+| FR_016 | Driving resumes after probe stow and data log | D | Observe rover resumes forward motion after sampling sequence |
+| FR_017 | IMU sampled at 20 Hz target rate | T | Measure sample timestamps over UART and verify rate |
+| FR_018 | Temp/humidity output only on threshold change | T | Apply gradual environmental change, verify output triggers only on defined delta |
+| FR_019 | Soil moisture ADC read only when probe deployed | I, T | Inspect code path; confirm no ADC reads logged outside sampling state |
+| FR_020 | Formatted output per FR_021 through FR_025 | T | Review UART and SD output against format specification |
+| FR_021 | Timestamp on all output lines | I, T | Inspect format strings; verify timestamps present in output |
+| FR_022 | IMU output at 5 Hz | T | Count IMU lines per second in log output |
+| FR_023 | Temp/humidity output on change events only | T | Verify no output when values are stable; verify output on change |
+| FR_024 | Soil moisture output with sample number and value | T | Verify each soil log line includes sample number and moisture value |
+| FR_025 | System events logged | T | Trigger state transitions and verify corresponding log entries |
+| FR_026 | Output written to SD card and transmitted over UART simultaneously | T | Compare SD card log contents against captured UART output |
+| FR_027 | SD card initialized on idle entry, rejected if not writable | T | Enter idle with and without SD card, verify UART reports status and mission start is blocked when absent |
+| FR_028 | SD write retry with fault on repeated failure | T | Simulate write failure, verify retry count and fault transition |
+| FR_029 | SD capacity exhaustion handled as write failure | A, T | Analyze per FR_028 handling; test with near-full card if feasible |
+| FR_030 | Green LED blinks slowly in idle | D | Observe LED blink pattern in idle state |
+| FR_031 | Green LED solid during driving and obstacle avoidance | D | Observe LED during driving and avoidance |
+| FR_032 | Amber LED during soil sampling | D | Observe LED during probe deployment |
+| FR_033 | Red LED on fault or low battery | D | Trigger fault and low battery conditions, observe LED |
+| FR_034 | All LEDs off in sleep | D | Enter sleep state and verify no LEDs lit |
+| FR_035 | Only one LED state active at a time | D | Observe LED transitions across all states |
+| FR_036 | Non-critical sensor failure logged, mission continues | T | Disconnect temp/humidity sensor mid-mission, verify log and continued operation |
+| FR_037 | Probe deployment failure with retry and fault escalation | T | Simulate invalid ADC readings, verify retry then fault sequence and operator clear |
+| FR_038 | Battery voltage monitored via ADC | T | Measure battery voltage with multimeter and compare against logged ADC value |
+| FR_039 | Low battery warning, LED, hold period, then sleep | T, D | Reduce battery voltage to threshold, verify warning log, red LED, hold duration, and sleep entry |
+| NFR_001 | Non-blocking main loop | I | Inspect code for absence of busy-wait delays during mission execution |
+| NFR_002 | Finite state machine architecture | I | Inspect code for defined states: idle, driving, obstacle avoidance, soil sampling, fault, sleep |
+| NFR_003 | HAL separation from application logic | I | Inspect code for peripheral register access confined to HAL/driver layer |
+| NFR_004 | Mission heading stored and used for proportional correction | T | Start mission, induce heading deviation, verify correction toward stored heading via IMU log |
+| NFR_005 | Distance sensor polling rate and safe stopping margin | A, T | Calculate braking distance vs. polling interval at cruise speed; test with obstacle at threshold distance |
+| NFR_006 | UART baud rate supports data throughput without loss | A, T | Calculate combined data rate; verify no dropped data in captured output |
+| NFR_007 | Button inputs debounced | I, T | Inspect debounce implementation; rapid-press button and verify single registration |
+| NFR_008 | IMU data filtered before output | I, T | Inspect filter implementation; compare raw vs. filtered output |
+| NFR_009 | Consecutive read failures before fault declaration | I, T | Inspect retry count logic; simulate intermittent sensor failures |
+| NFR_010 | UART output human-readable and structured | T | Review output format against IF_011 and IF_012 |
+| NFR_011 | LED transitions immediate and mutually exclusive | D | Trigger rapid state changes, observe LED response |
+| NFR_012 | Subsystems verifiable via UART without driving | T | Exercise state transitions and sensor reads on bench via UART |
+| IF_001 | IMU communicates over I2C | I | Inspect wiring schematic and firmware I2C configuration |
+| IF_002 | Temp/humidity sensor communicates over I2C | I | Inspect wiring schematic and firmware I2C configuration |
+| IF_003 | Soil moisture sensor via ADC input | I | Inspect wiring schematic and ADC channel assignment |
+| IF_004 | Distance sensor via GPIO or ADC (TBD) | I | Inspect wiring schematic and firmware interface configuration |
+| IF_005 | Servo driven by PWM output | I | Inspect wiring schematic and PWM timer configuration |
+| IF_006 | Motors controlled via PWM through motor driver | I | Inspect wiring schematic and PWM configuration |
+| IF_007 | Encoders via GPIO edge detection | I | Inspect wiring schematic and GPIO interrupt configuration |
+| IF_008 | Button on GPIO with pull-up/pull-down | I | Inspect wiring schematic and GPIO configuration |
+| IF_009 | Battery voltage via ADC through voltage divider | I | Inspect wiring schematic and ADC channel assignment |
+| IF_010 | SD card module via SPI | I | Inspect wiring schematic and SPI configuration |
+| IF_011 | Tagged, human-readable line format with timestamp and key-value fields | T | Compare actual output lines against defined format |
+| IF_012 | Correct category tags used | T | Verify log output uses defined tags: IMU, TEMP, HUM, SOIL, SYS |
+| IF_013 | Three LEDs driven by GPIO | I, D | Inspect wiring schematic; observe all three LEDs operational |
+| CON_001 | Single STM32 MCU with sufficient resources | I | Inspect design for single MCU; verify peripheral usage fits selected variant |
+| CON_002 | All components are COTS modules | I | Verify all components sourced from commercial vendors |
+| CON_003 | Firmware in C using HAL, STM32CubeIDE, GCC | I | Inspect project configuration, toolchain, and source files |
+| CON_004 | Battery supports 20-minute mission with no tether | A | Calculate total current draw and compare against battery capacity |
+| CON_005 | All components fit on single chassis | I | Inspect physical assembly after component selection |
+| CON_006 | Rover operates on outdoor terrain | D | Run mission on soil/dirt/grass surface |
+| ASMP_001 | Components compatible with 3.3V logic | I | Verify datasheets confirm 3.3V compatibility or level shifting is present |
+| ASMP_002 | Unique I2C addresses on shared bus | I | Verify addresses from datasheets, confirm no conflicts |
+| ASMP_003 | STM32 variant has sufficient peripherals | A | Count required ADC, PWM, I2C, SPI, UART, GPIO against selected MCU datasheet |
+| ASMP_004 | Servo operates open-loop with sufficient torque | D, A | Observe probe deployment; verify servo torque spec meets estimated load |
+| ASMP_005 | Operating terrain approximately level | A | Defined as an operational assumption; validated by test area selection |
+| ASMP_006 | Battery voltage drop-off is gradual | A | Review battery discharge curve from datasheet |
+| ASMP_007 | Motor driver accepts PWM with simple direction interface | I | Verify motor driver datasheet confirms PWM + direction pin interface |
+| ASMP_008 | SD card formatted as FAT32, logs readable on host | T | Write log during mission, mount SD card on PC, open log file |
+| DEP_001 | HAL version locked at project start | I | Verify STM32CubeIDE project configuration references a fixed HAL version |
+| DEP_002 | Component commercial availability | A | Verified at component selection; substitution impact mitigated by NFR_003 |
+| DEP_003 | Adequate technical documentation available | I | Confirm datasheets and register maps are on hand for all selected components |
+| DEP_004 | FatFs version locked at project start | I | Verify middleware configuration references a fixed FatFs version |
