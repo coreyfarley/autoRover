@@ -1,0 +1,22 @@
+# STM32CubeIDE build output
+Roam/Debug/
+Roam/Release/
+
+# Build artifacts
+*.o
+*.d
+*.elf
+*.bin
+*.hex
+*.list
+*.map
+
+# CubeIDE workspace-specific (regenerated after each build)
+Roam/.settings/
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
