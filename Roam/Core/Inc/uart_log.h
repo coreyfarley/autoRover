@@ -2,8 +2,7 @@
  * @file	uart_log.h
  * @brief	Tagged, time-stamped UART logging for Roam AutoRover
  *
- * Public API for the uart_log module. Provides formatted log output
- * over UART per requirements IF_011 and IF_012.
+ * Provides formatted log output over UART (req IF_011 and IF_012).
  */
 
 #ifndef INC_UART_LOG_H_
@@ -12,9 +11,7 @@
 /* Includes */
 #include "stm32l4xx_hal.h"   // board specific to L-4 family, will change when final board has arrived
 
-/* Defines */
 
-/* Private typedefs */
 // Log tags
 typedef enum {
 	LOG_TAG_IMU = 0,		// Accelerometer / Gyroscope snapshot
@@ -26,11 +23,13 @@ typedef enum {
 } log_tag_t;
 
 /**
- * Initialize UART logging module
+ * Initialize UART logging module.
+ *
  * Call once at startup, before any uart_log_write() calls.
- * @param	huart		Pointer to the UART handle to send log output through.
- * 						The handle must stay valid for the whole program -
- * 						pass in a global like &huart1.
+ *
+ * @param  huart  Pointer to the UART handle to send log output through.
+ *                The handle must stay valid for the whole program -
+ *                pass in a global like &huart1.
  */
 void uart_log_init(UART_HandleTypeDef *huart);
 
@@ -42,11 +41,11 @@ void uart_log_init(UART_HandleTypeDef *huart);
  * Time-stamp is captured from HAL_GetTick() at call time.
  * If message exceeds the internal buffer, message gets truncated.
  *
- * @param	tag		log category (see log_tag_t).
- * @param	fmt		printf-style format string for message body.
- * @param	...		values to fill in the %place-holders in fmt, if any.
+ * @param  tag  Log category (see log_tag_t).
+ * @param  fmt  printf-style format string for message body.
+ * @param  ...  Values to fill in the %place-holders in fmt, if any.
  */
 void uart_log_write(log_tag_t tag, const char *fmt, ...);
 
 
-#endif /* INC_UART_LOG_H_ */
+#endif 

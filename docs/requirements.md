@@ -127,7 +127,7 @@ point the rover enters a shutdown state and ceases movement.
 
 **FR_032** - The system shall drive an amber/yellow LED to indicate soil sampling mode (rover is stationary, probe is deployed).
 
-**FR_033** - The system shall drive a red LED to indicate a fault condition or low battery state.
+**FR_033** - The system shall drive a red LED to indicate a fault condition and blinking red LED to indicate a low battery state.
 
 **FR_034** - All LEDs shall be off during sleep state.
 
@@ -321,7 +321,7 @@ Each requirement in this document shall be verified using one or more of the fol
 | FR_030 | Green LED blinks slowly in idle | D | Observe LED blink pattern in idle state |
 | FR_031 | Green LED solid during driving and obstacle avoidance | D | Observe LED during driving and avoidance |
 | FR_032 | Amber LED during soil sampling | D | Observe LED during probe deployment |
-| FR_033 | Red LED on fault or low battery | D | Trigger fault and low battery conditions, observe LED |
+| FR_033 | Red solid LED on fault and red blinking for low battery | D | Trigger fault and low battery conditions, observe LED |
 | FR_034 | All LEDs off in sleep | D | Enter sleep state and verify no LEDs lit |
 | FR_035 | Only one LED state active at a time | D | Observe LED transitions across all states |
 | FR_036 | Non-critical sensor failure logged, mission continues | T | Disconnect temp/humidity sensor mid-mission, verify log and continued operation |

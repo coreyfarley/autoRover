@@ -1,21 +1,19 @@
 /**
-* @file		uart_log.c
-* @brief	UART Log Module implementation
-*
-*/
+ * @file    uart_log.c
+ * @brief   UART Log Module implementation
+ */
 
-/* Includes*/
+/* Includes */
 #include "uart_log.h"
-
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 
-/* Private Defines */
+/* Defines */
 #define UART_LOG_BUF_SIZE       128
 #define UART_LOG_USER_MSG_SIZE  96
 
-/* Static Variables*/
+/* Static Variables */
 static UART_HandleTypeDef *s_huart = NULL;
 static char s_buf[UART_LOG_BUF_SIZE];
 static char s_user_msg[UART_LOG_USER_MSG_SIZE];
@@ -29,7 +27,7 @@ static const char *tag_strings[LOG_TAG_COUNT] =
     [LOG_TAG_SYS]  = "[SYS]  ",
 };
 
-/* Function Definitions*/
+/* Function Definitions */
 
 void uart_log_init(UART_HandleTypeDef *huart)
 {
@@ -68,10 +66,6 @@ void uart_log_write(log_tag_t tag, const char *fmt, ...)
     }
 
     /* Push the line out the UART. (blocking is fine during bring up)
-    *  Revist when state machine lands per NFR_001 */
+     * Revist when state machine lands per NFR_001 */
     HAL_UART_Transmit(s_huart, (uint8_t *)s_buf, len, HAL_MAX_DELAY);
 }
-
-
-
-

@@ -13,7 +13,7 @@ What: sets up the module by accepting a UART handle pointer.
 Decided: caller passes the handle in (e.g. uart_log_init(&huart1)) rather than the module hardcoding a global.
 Reasons: Decouples the driver from the specific UART. When we change to final board selection, only main.c changes.
 
--- uart_log_write--
+-- uart_log_write --
 What: writes one tagged, timestamped log line to UART
 Decided: printf-style variadic signature
 Reason: call sites stay one line; the module owns all formatting,
@@ -59,6 +59,18 @@ Reasons: Simple. Logger is the only thing using this UART.
 Non-blocking transmit (DMA + ring buffer) when state machine lands per NFR_001
 SD card mirroring per FR_026
 
+=== 5/2 ===
+led_status (.h/.c) have been completed. Not tested with board yet. 
+
+-- LED_BLINK_INTERVAL_MS --
+play around with this speed to find what idle / battery toggling you like.
+
+-- init --
+copies the gpio descriptors by dereferencing the caller's pointers into static variables. Then drives all pins low so we ensure the starting state
+
+-- s_last_toggle_ms : records when the last toggle happened
+-- s_blink_on: records which direction the LED is currently in (on or off)
+(both get reset in led_status_set so that entering a blink state always starts a fresh cycle from LED off)
 
 
 
