@@ -9,18 +9,20 @@
 #ifndef INC_UART_LOG_H_
 #define INC_UART_LOG_H_
 
+/* Includes */
 #include "stm32l4xx_hal.h"   // board specific to L-4 family, will change when final board has arrived
 
-/**
- * Log category tags
- */
+/* Defines */
+
+/* Private typedefs */
+// Log tags
 typedef enum {
 	LOG_TAG_IMU = 0,		// Accelerometer / Gyroscope snapshot
 	LOG_TAG_TEMP,			// Temperature change event
 	LOG_TAG_HUM,			// Humidity change event
 	LOG_TAG_SOIL,			// Soil Moisture sample
 	LOG_TAG_SYS,			// System events
-	LOG_TAG_COUNT			// number of valid tags, used to size arrays in uart_log.c
+	LOG_TAG_COUNT			// sentinel: number of valid tags, used to size arrays in uart_log.c
 } log_tag_t;
 
 /**
