@@ -86,8 +86,8 @@ void Error_Handler(void);
 #define ARD_D0_GPIO_Port GPIOA
 #define ARD_D10_Pin GPIO_PIN_2
 #define ARD_D10_GPIO_Port GPIOA
-#define ARD_D4_Pin GPIO_PIN_3
-#define ARD_D4_GPIO_Port GPIOA
+#define LED_GREEN_Pin GPIO_PIN_3
+#define LED_GREEN_GPIO_Port GPIOA
 #define ARD_D7_Pin GPIO_PIN_4
 #define ARD_D7_GPIO_Port GPIOA
 #define ARD_D13_Pin GPIO_PIN_5
@@ -104,8 +104,8 @@ void Error_Handler(void);
 #define ARD_D3_GPIO_Port GPIOB
 #define ARD_D6_Pin GPIO_PIN_1
 #define ARD_D6_GPIO_Port GPIOB
-#define ARD_D8_Pin GPIO_PIN_2
-#define ARD_D8_GPIO_Port GPIOB
+#define LED_AMBER_Pin GPIO_PIN_2
+#define LED_AMBER_GPIO_Port GPIOB
 #define DFSDM1_DATIN2_Pin GPIO_PIN_7
 #define DFSDM1_DATIN2_GPIO_Port GPIOE
 #define ISM43362_RST_Pin GPIO_PIN_8
@@ -132,8 +132,8 @@ void Error_Handler(void);
 #define ISM43362_BOOT0_GPIO_Port GPIOB
 #define ISM43362_WAKEUP_Pin GPIO_PIN_13
 #define ISM43362_WAKEUP_GPIO_Port GPIOB
-#define LED_GREEN_Pin GPIO_PIN_14
-#define LED_GREEN_GPIO_Port GPIOB
+#define LED_GREENB14_Pin GPIO_PIN_14
+#define LED_GREENB14_GPIO_Port GPIOB
 #define SPSGRF_915_SDN_Pin GPIO_PIN_15
 #define SPSGRF_915_SDN_GPIO_Port GPIOB
 #define INTERNAL_UART3_TX_Pin GPIO_PIN_8
@@ -150,9 +150,8 @@ void Error_Handler(void);
 #define USB_OTG_FS_PWR_EN_GPIO_Port GPIOD
 #define SPBTLE_RF_SPI3_CSN_Pin GPIO_PIN_13
 #define SPBTLE_RF_SPI3_CSN_GPIO_Port GPIOD
-#define ARD_D2_Pin GPIO_PIN_14
-#define ARD_D2_GPIO_Port GPIOD
-#define ARD_D2_EXTI_IRQn EXTI15_10_IRQn
+#define LED_RED_Pin GPIO_PIN_14
+#define LED_RED_GPIO_Port GPIOD
 #define HTS221_DRDY_EXTI15_Pin GPIO_PIN_15
 #define HTS221_DRDY_EXTI15_GPIO_Port GPIOD
 #define HTS221_DRDY_EXTI15_EXTI_IRQn EXTI15_10_IRQn

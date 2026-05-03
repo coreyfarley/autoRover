@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "uart_log.h"
+#include "led_status.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -84,7 +85,10 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+  /* Configure GPIO LED pins */
+  led_gpio_t green = { .port = GPIOA, .pin = GPIO_PIN_3 };
+  led_gpio_t amber = { .port = GPIOB, .pin = GPIO_PIN_2 };
+  led_gpio_t red   = { .port = GPIOD, .pin = GPIO_PIN_14 };
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -114,6 +118,7 @@ int main(void)
   MX_USB_OTG_FS_PCD_Init();
   /* USER CODE BEGIN 2 */
   uart_log_init(&huart1);
+  led_status_init(&green, &amber, &red);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -124,8 +129,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	uart_log_write(LOG_TAG_SOIL, "sample=%d  moisture=%d", 3, 482);
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
-	HAL_Delay(2000);
+	led_status_update(HAL_GetTick());
   }
   /* USER CODE END 3 */
 }
@@ -477,14 +481,14 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOE, M24SR64_Y_RF_DISABLE_Pin|M24SR64_Y_GPO_Pin|ISM43362_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, ARD_D10_Pin|SPBTLE_RF_RST_Pin|ARD_D9_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, ARD_D10_Pin|LED_GREEN_Pin|SPBTLE_RF_RST_Pin|ARD_D9_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, ARD_D8_Pin|ISM43362_BOOT0_Pin|ISM43362_WAKEUP_Pin|LED_GREEN_Pin
+  HAL_GPIO_WritePin(GPIOB, LED_AMBER_Pin|ISM43362_BOOT0_Pin|ISM43362_WAKEUP_Pin|LED_GREENB14_Pin
                           |SPSGRF_915_SDN_Pin|ARD_D5_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, USB_OTG_FS_PWR_EN_Pin|PMOD_RESET_Pin|STSAFE_A100_RESET_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, USB_OTG_FS_PWR_EN_Pin|LED_RED_Pin|PMOD_RESET_Pin|STSAFE_A100_RESET_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SPBTLE_RF_SPI3_CSN_GPIO_Port, SPBTLE_RF_SPI3_CSN_Pin, GPIO_PIN_SET);
@@ -533,20 +537,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ARD_D10_Pin SPBTLE_RF_RST_Pin ARD_D9_Pin */
-  GPIO_InitStruct.Pin = ARD_D10_Pin|SPBTLE_RF_RST_Pin|ARD_D9_Pin;
+  /*Configure GPIO pins : ARD_D10_Pin LED_GREEN_Pin SPBTLE_RF_RST_Pin ARD_D9_Pin */
+  GPIO_InitStruct.Pin = ARD_D10_Pin|LED_GREEN_Pin|SPBTLE_RF_RST_Pin|ARD_D9_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : ARD_D4_Pin */
-  GPIO_InitStruct.Pin = ARD_D4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
-  HAL_GPIO_Init(ARD_D4_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : ARD_D7_Pin */
   GPIO_InitStruct.Pin = ARD_D7_Pin;
@@ -574,25 +570,25 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(ARD_D6_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ARD_D8_Pin ISM43362_BOOT0_Pin ISM43362_WAKEUP_Pin LED_GREEN_Pin
+  /*Configure GPIO pins : LED_AMBER_Pin ISM43362_BOOT0_Pin ISM43362_WAKEUP_Pin LED_GREENB14_Pin
                            SPSGRF_915_SDN_Pin ARD_D5_Pin SPSGRF_915_SPI3_CSN_Pin */
-  GPIO_InitStruct.Pin = ARD_D8_Pin|ISM43362_BOOT0_Pin|ISM43362_WAKEUP_Pin|LED_GREEN_Pin
+  GPIO_InitStruct.Pin = LED_AMBER_Pin|ISM43362_BOOT0_Pin|ISM43362_WAKEUP_Pin|LED_GREENB14_Pin
                           |SPSGRF_915_SDN_Pin|ARD_D5_Pin|SPSGRF_915_SPI3_CSN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LPS22HB_INT_DRDY_EXTI0_Pin LSM6DSL_INT1_EXTI11_Pin ARD_D2_Pin HTS221_DRDY_EXTI15_Pin
-                           PMOD_IRQ_EXTI12_Pin */
-  GPIO_InitStruct.Pin = LPS22HB_INT_DRDY_EXTI0_Pin|LSM6DSL_INT1_EXTI11_Pin|ARD_D2_Pin|HTS221_DRDY_EXTI15_Pin
-                          |PMOD_IRQ_EXTI12_Pin;
+  /*Configure GPIO pins : LPS22HB_INT_DRDY_EXTI0_Pin LSM6DSL_INT1_EXTI11_Pin HTS221_DRDY_EXTI15_Pin PMOD_IRQ_EXTI12_Pin */
+  GPIO_InitStruct.Pin = LPS22HB_INT_DRDY_EXTI0_Pin|LSM6DSL_INT1_EXTI11_Pin|HTS221_DRDY_EXTI15_Pin|PMOD_IRQ_EXTI12_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : USB_OTG_FS_PWR_EN_Pin SPBTLE_RF_SPI3_CSN_Pin PMOD_RESET_Pin STSAFE_A100_RESET_Pin */
-  GPIO_InitStruct.Pin = USB_OTG_FS_PWR_EN_Pin|SPBTLE_RF_SPI3_CSN_Pin|PMOD_RESET_Pin|STSAFE_A100_RESET_Pin;
+  /*Configure GPIO pins : USB_OTG_FS_PWR_EN_Pin SPBTLE_RF_SPI3_CSN_Pin LED_RED_Pin PMOD_RESET_Pin
+                           STSAFE_A100_RESET_Pin */
+  GPIO_InitStruct.Pin = USB_OTG_FS_PWR_EN_Pin|SPBTLE_RF_SPI3_CSN_Pin|LED_RED_Pin|PMOD_RESET_Pin
+                          |STSAFE_A100_RESET_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
