@@ -17,6 +17,7 @@
 
 /* Function Prototypes */
 static void leds_drive(GPIO_PinState green, GPIO_PinState amber, GPIO_PinState red);
+static bool blink_due(uint32_t now_ms);
 
 /* Static Variables */
 static led_gpio_t s_green;
@@ -26,7 +27,7 @@ static led_state_t s_state = LED_STATE_IDLE;
 static uint32_t s_last_toggle_ms = 0;			// records when the last LED toggle happened
 static bool s_blink_on = false;					// records which direction the LED is currently in
 
-/* Copies GPIO descriptors and drives all LEDs off to establish a known starting state. */
+/* Drives all LEDs off to establish a known starting state. */
 void led_status_init(const led_gpio_t *green,
                      const led_gpio_t *amber,
                      const led_gpio_t *red)
@@ -74,27 +75,13 @@ void led_status_update(uint32_t now_ms)
 			break;
 			
 		case LED_STATE_IDLE:
-			// toggle blink state if interval has elapsed
-			if ((now_ms - s_last_toggle_ms) > LED_BLINK_INTERVAL_MS )
-			{
-				// flip LED on/off if interval has elapsed
-				s_blink_on = !s_blink_on;
-				s_last_toggle_ms = now_ms;
-			}
 			// green follows blink state, amber & red always off
-			leds_drive(s_blink_on ? GPIO_PIN_SET : GPIO_PIN_RESET, GPIO_PIN_RESET, GPIO_PIN_RESET);
+			leds_drive(blink_due(now_ms) ? GPIO_PIN_SET : GPIO_PIN_RESET, GPIO_PIN_RESET, GPIO_PIN_RESET);
 			break;
 
 		case LED_STATE_LOW_BATTERY:
-			// toggle blink state if interval has elapsed
-			if ((now_ms - s_last_toggle_ms) > LED_BLINK_INTERVAL_MS )
-			{
-				// flip LED on/off and reset toggle timestamp
-				s_blink_on = !s_blink_on;
-				s_last_toggle_ms = now_ms;
-			}
 			// red follows blink state, green & amber off
-			leds_drive(GPIO_PIN_RESET, GPIO_PIN_RESET, s_blink_on ? GPIO_PIN_SET : GPIO_PIN_RESET);
+			leds_drive(GPIO_PIN_RESET, GPIO_PIN_RESET, blink_due(now_ms) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 			break;
 		default:
 			break;
@@ -107,5 +94,17 @@ static void leds_drive(GPIO_PinState green, GPIO_PinState amber, GPIO_PinState r
 	HAL_GPIO_WritePin(s_green.port, s_green.pin, green);
 	HAL_GPIO_WritePin(s_amber.port, s_amber.pin, amber);
 	HAL_GPIO_WritePin(s_red.port, s_red.pin, red);
+}
+
+/* Toggles the shared blink state when LED_BLINK_INTERVAL_MS has elapsed.
+ * Returns the current on/off state so blink cases stay one line. */
+static bool blink_due(uint32_t now_ms)
+{
+	if ((now_ms - s_last_toggle_ms) > LED_BLINK_INTERVAL_MS)
+	{
+		s_blink_on = !s_blink_on;
+		s_last_toggle_ms = now_ms;
+	}
+	return s_blink_on;
 }
 

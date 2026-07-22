@@ -42,6 +42,11 @@ void uart_log_write(log_tag_t tag, const char *fmt, ...)
         return;
     }
 
+    if (tag >= LOG_TAG_COUNT)
+    {
+        return;
+    }
+
     // Expand the user's format string into the user-message buffer
     va_list args;
     va_start(args, fmt);
@@ -52,14 +57,18 @@ void uart_log_write(log_tag_t tag, const char *fmt, ...)
     const char *tag_str = tag_strings[tag];
     uint32_t timestamp = HAL_GetTick();
 
-    // Assemble the full log line: [TAG] t=<ms>  <user msg>/r/n
+    // Assemble the full log line: [TAG] t=<ms>  <user msg>\r\n
     int len = snprintf(s_buf, UART_LOG_BUF_SIZE,
                        "%st=%lu  %s\r\n",
                         tag_str,
                         (unsigned long)timestamp,
                         s_user_msg);
 
-    // Clamp len in case snprintf truncated
+    // Bail on encoding error & clamp if snprintf truncated
+    if (len < 0)
+    {
+        return;
+    }
     if (len >= UART_LOG_BUF_SIZE)
     {
         len = UART_LOG_BUF_SIZE - 1;

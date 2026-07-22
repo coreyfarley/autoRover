@@ -86,9 +86,9 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
   /* Configure GPIO LED pins */
-  led_gpio_t green = { .port = GPIOA, .pin = GPIO_PIN_3 };
-  led_gpio_t amber = { .port = GPIOB, .pin = GPIO_PIN_2 };
-  led_gpio_t red   = { .port = GPIOD, .pin = GPIO_PIN_14 };
+  led_gpio_t green = { .port = LED_GREEN_GPIO_Port, .pin = LED_GREEN_Pin };
+  led_gpio_t amber = { .port = LED_AMBER_GPIO_Port, .pin = LED_AMBER_Pin };
+  led_gpio_t red   = { .port = LED_RED_GPIO_Port,   .pin = LED_RED_Pin   };
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
