@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "uart_log.h"
 #include "led_status.h"
+#include "button.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -119,6 +120,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uart_log_init(&huart1);
   led_status_init(&green, &amber, &red);
+  button_init(GPIOC, GPIO_PIN_13);
+  bool driving = false;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -128,8 +131,17 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	uart_log_write(LOG_TAG_SOIL, "sample=%d  moisture=%d", 3, 482);
-	led_status_update(HAL_GetTick());
+	uint32_t now = HAL_GetTick();
+
+	button_update(now);
+	if (button_pressed())
+	{
+		driving = !driving;
+		led_status_set(driving ? LED_STATE_DRIVING : LED_STATE_IDLE);
+		uart_log_write(LOG_TAG_SYS, "event=BUTTON PRESS  driving=%d", driving);
+	}
+
+	led_status_update(now);
   }
   /* USER CODE END 3 */
 }
@@ -515,11 +527,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : BUTTON_EXTI13_Pin */
-  GPIO_InitStruct.Pin = BUTTON_EXTI13_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  /*Configure GPIO pin : PC13 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(BUTTON_EXTI13_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : ARD_A5_Pin ARD_A4_Pin ARD_A3_Pin ARD_A2_Pin
                            ARD_A1_Pin ARD_A0_Pin */

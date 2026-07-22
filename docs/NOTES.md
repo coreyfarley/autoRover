@@ -63,7 +63,7 @@ SD card mirroring per FR_026
 led_status (.h/.c) have been completed. Not tested with board yet. 
 
 -- LED_BLINK_INTERVAL_MS --
-play around with this speed to find what idle / battery toggling you like.
+adjust this speed to find the right idle / battery toggling.
 
 -- init --
 copies the gpio descriptors by dereferencing the caller's pointers into static variables. Then drives all pins low so we ensure the starting state
@@ -71,6 +71,30 @@ copies the gpio descriptors by dereferencing the caller's pointers into static v
 -- s_last_toggle_ms : records when the last toggle happened
 -- s_blink_on: records which direction the LED is currently in (on or off)
 (both get reset in led_status_set so that entering a blink state always starts a fresh cycle from LED off)
+
+=== 7/21 ===
+button (.h/.c) done and tested on hardware. Debounced button press. Verified: one press = one clean event,
+green LED blinks (idle) / solid (driving), UART logs each press.
+
+-- detection: polling, not interrupt --
+Decided: poll the pin every loop in button_update(now_ms), same pattern as led_status.
+Reasons: interrupt gets clunky here - bounce fires the ISR a bunch of times, and you'd need a timer
+         inside it to debounce anyway. Polling keeps it simple and non-blocking. 
+Deferred: use EXTI on PC13 as a wake-from-sleep source later (polling can't wake a sleeping MCU).
+
+-- debounce: accept-after-stable, 25ms --
+Decided: only accept a new state after the pin reads the same for 25ms straight. Timed off now_ms, not a sample count.
+Reasons: rejects glitches instead of trusting the first edge. 25ms is past the bounce but way under
+         what a human notices. Timing off now_ms (not counting samples) means the window stays 25ms
+         even when the loop slows down later. Same reason led_status uses now_ms.
+
+-- event: latched, consume-on-read --
+Decided: button_pressed() returns true once per press and clears itself on read. Reading eats the event.
+Reasons: the FSM cares about the press moment, not "is it held." Latching means I can't miss it,
+         consume-on-read means it can't double-fire off one push. Driver owns the edge detection so
+         the FSM doesn't have to.
+Deferred: long-press to shutdown. No manual shutdown path in reqs right now (possibly worth adding).
+
 
 
 
