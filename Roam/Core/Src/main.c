@@ -24,6 +24,7 @@
 #include "uart_log.h"
 #include "led_status.h"
 #include "button.h"
+#include "sys_fsm.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -121,27 +122,21 @@ int main(void)
   uart_log_init(&huart1);
   led_status_init(&green, &amber, &red);
   button_init(GPIOC, GPIO_PIN_13);
-  bool driving = false;
+  sys_fsm_init(HAL_GetTick());
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    uint32_t now = HAL_GetTick();
+
+    button_update(now);
+    sys_fsm_update(now);
+    led_status_update(now);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	uint32_t now = HAL_GetTick();
-
-	button_update(now);
-	if (button_pressed())
-	{
-		driving = !driving;
-		led_status_set(driving ? LED_STATE_DRIVING : LED_STATE_IDLE);
-		uart_log_write(LOG_TAG_SYS, "event=BUTTON PRESS  driving=%d", driving);
-	}
-
-	led_status_update(now);
   }
   /* USER CODE END 3 */
 }

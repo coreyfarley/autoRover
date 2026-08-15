@@ -95,6 +95,69 @@ Reasons: the FSM cares about the press moment, not "is it held." Latching means 
          the FSM doesn't have to.
 Deferred: long-press to shutdown. No manual shutdown path in reqs right now (possibly worth adding).
 
+=== 8/14 ===
+sys_fsm (.h/.c) - the state machine for handling transitions of state was implemented (NFR_002).
+button.c was extended to differentiate a short button press versus a long button press.
+requirements.md slightly amended (NFR_002 state list, new FR_040).
+
+-- Low Battery and Aborting --
+these were added to state count, bringing total from 6 to 8.
+Low Battery: FR_039 wants a hold in a warning state for a configurable duration before shutdown.
+             A duration needs a state to live in.
+Aborting:    FR_004 wants the probe retracted before returning to idle. This is a timed transition,
+             not an instant one.
+Also decided avoidance sub-phases (pivot, poll, sweep timeout) stay inside the avoidance module
+rather than becoming their own top-level states. Same idea as button.c owning the debouncing to
+keep things simple and modular.
+
+-- fsm_transition --
+every state change goes through this one function. Logs the change, sets the LED, stamps
+s_state_entered_ms.
+Reason: FR_025, FR_035, and NFR_011 are now satisfied by the structure. s_state_entered_ms gives
+        every state an elapsed timer - aborting needs it for servo travel, low battery for its
+        hold, and FR_037 for the deploy timeout.
+Init deliberately does not use it. Boot is not a transition, and a self-transition guard would
+reject Idle to Idle.
+
+-- LED Mapping --
+8 system states onto 6 LED states via a lookup table, same pattern as state_names[] and the tag
+table in uart_log.c
+AVOIDANCE uses the driving LED because FR_031 says green covers driving including avoidance.
+ABORTING uses amber but will need to amend the requirements to reflect this state.
+
+-- consume-on-read --
+button_pressed() and button_long_pressed() (in button.c) clear on read, so every state has to read
+both every iteration. An unread event stays latched and fires in whichever state reads next.
+
+-- FR_040 --
+added. long press enters sleep. Closes the 'no manual shutdown path' item deferred on 7/21,
+and allows me a way to reach SLEEP on bench without motors (NFR_012)
+
+-- button.c (short vs long press) --
+long press is a level check on the debounce state, not an edge check. Fires once per hold instead
+of every iteration. This forced a short press onto the release edge (otherwise one long hold fires
+both events). So feedback is now on the release.
+
+-- SLEEP does not sleep --
+just turns everything off and stops acting. Real low power entry plus EXTI wake will be deferred
+for now.
+
+-- Verified on hardware --
+B-L475E-IOT01A, USART1 at 115200
+short press: one IDLE to DRIVING per press (registers on release)
+long press: exactly one transition to SLEEP per hold (no button line before or after, or repeating
+            while holding)
+t=11 was identical on the BOOT line across all five runs.
+
+-- Open / Deferred --
+ABORTING has no exit yet. Only reset gets out.
+FR_032 needs amending so amber covers ABORTING, not just sampling.
+AVOIDANCE sub-phase logic (FR_009)
+Sampling sequence, servo timing, ADC validity window (FR_011-016, FR_037)
+Non-blocking UART, DMA plus ring buffer (NFR_001)
+and more....
+
+
 
 
 

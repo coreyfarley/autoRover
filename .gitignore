@@ -20,3 +20,6 @@ Roam/.settings/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local AI assistant context (not part of the deliverable)
+CLAUDE.md

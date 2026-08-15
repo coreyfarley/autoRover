@@ -5,7 +5,7 @@
  * Interface for initializing, updating, and querying
  * user-button state.
  *
- * Requirements: NFR_007, IF_008, FR_003, FR_004.
+ * Requirements: NFR_007, IF_008, FR_003, FR_004, FR_040.
  */
 
 #ifndef INC_BUTTON_H_
@@ -37,9 +37,18 @@ void button_init(GPIO_TypeDef *port, uint16_t pin);
 void button_update(uint32_t now_ms);
 
 /**
- * Returns true once per debounced press.
+ * Returns true once per debounced short press.
+ * Fires on release, so a hold long enough to report a long press
+ * never also reports a short one.
  * READING CONSUMES THIS EVENT.
  */
 bool button_pressed(void);
+
+/**
+ * Returns true once per hold that reaches the long-press duration.
+ * Fires while the button is still down, not on release.
+ * READING CONSUMES THIS EVENT.
+ */
+bool button_long_pressed(void);
 
 #endif

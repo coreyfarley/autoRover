@@ -55,6 +55,10 @@ point the rover enters a shutdown state and ceases movement.
 
 **FR_005** - The system shall terminate the mission and enter a low-power sleep state after successfully collecting N soil moisture samples. N shall be a configurable parameter.
 
+**FR_040** - The system shall enter the low-power sleep state upon receiving a long button press, held for a configurable duration, from any state other than sleep or aborting. This provides a manual shutdown path independent of the mission-completion path defined in FR_005. All LEDs shall be turned off upon entering sleep state per FR_034.
+
+- The aborting state is excluded so that shutdown cannot strand the soil probe in the deployed position, which would otherwise conflict with the retraction required by FR_004.
+
 ### Motor Control & Navigation
 
 **FR_006** - The system shall drive the rover forward at a constant cruise speed during driving mode. The system shall control motor outputs independently to implement differential steering for heading adjustments.
@@ -150,7 +154,10 @@ entering sleep state per FR_034.
 
 **NFR_001** - The main loop shall be entirely non-blocking. No busy-wait delays (e.g., `HAL_Delay`) shall be used during mission execution.
 
-**NFR_002** - The system shall be implemented as a finite state machine with clearly defined states, including: idle, driving, obstacle avoidance, soil sampling, fault, and sleep.
+**NFR_002** - The system shall be implemented as a finite state machine with clearly defined states: idle, driving, obstacle avoidance, soil sampling, aborting, low battery, fault, and sleep.
+
+- *Aborting* is the transient state entered on mission abort (FR_004), during which the probe is retracted before the transition to idle completes.
+- *Low battery* is the warning-hold state required by FR_039 prior to shutdown.
 
 **NFR_003** - Firmware shall maintain clear separation between hardware abstraction and application logic, such that application code does not 
 directly access peripheral registers.
@@ -328,8 +335,9 @@ Each requirement in this document shall be verified using one or more of the fol
 | FR_037 | Probe deployment failure with retry and fault escalation | T | Simulate invalid ADC readings, verify retry then fault sequence and operator clear |
 | FR_038 | Battery voltage monitored via ADC | T | Measure battery voltage with multimeter and compare against logged ADC value |
 | FR_039 | Low battery warning, LED, hold period, then sleep | T, D | Reduce battery voltage to threshold, verify warning log, red LED, hold duration, and sleep entry |
+| FR_040 | Manual shutdown into sleep via long button press | D, T | Hold button past the configured threshold from each eligible state, verify sleep entry, LED off, and that a short press in the same state does not trigger shutdown; confirm a long press during aborting does not shut down before the probe is stowed |
 | NFR_001 | Non-blocking main loop | I | Inspect code for absence of busy-wait delays during mission execution |
-| NFR_002 | Finite state machine architecture | I | Inspect code for defined states: idle, driving, obstacle avoidance, soil sampling, fault, sleep |
+| NFR_002 | Finite state machine architecture | I | Inspect code for defined states: idle, driving, obstacle avoidance, soil sampling, aborting, low battery, fault, sleep; verify all state changes route through a single transition function |
 | NFR_003 | HAL separation from application logic | I | Inspect code for peripheral register access confined to HAL/driver layer |
 | NFR_004 | Mission heading stored and used for proportional correction | T | Start mission, induce heading deviation, verify correction toward stored heading via IMU log |
 | NFR_005 | Distance sensor polling rate and safe stopping margin | A, T | Calculate braking distance vs. polling interval at cruise speed; test with obstacle at threshold distance |
